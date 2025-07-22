@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigQuery Interface</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <header class="app-header">
+        <!-- Header content -->
+    </header>
+
+    <main class="container">
+        <h1>BigQuery Interface</h1>
+        <div class="query-container">
+            <textarea id="query-input" placeholder="Enter your plain language query here..."></textarea>
+            <div class="query-options">
+                <input type="text" id="time-range" placeholder="Time range">
+                <select id="pre-designed-questions">
+                    <option value="">Select a pre-designed question</option>
+                    <option value="question1">Question 1</option>
+                    <option value="question2">Question 2</option>
+                </select>
+                <button id="submit-query">Submit</button>
+            </div>
+        </div>
+        <div class="generated-query">
+            <h2>Generated BigQuery Query</h2>
+            <pre id="generated-query-text"></pre>
+            <button id="approve-query">Approve and Run</button>
+        </div>
+        <div class="results-container">
+            <h2>Results</h2>
+            <div id="results-table"></div>
+        </div>
+    </main>
+
+    <script src="scripts/query.js"></script>
+</body>
+</html>
