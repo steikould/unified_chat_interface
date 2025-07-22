@@ -4,23 +4,854 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Developer Requirements Chat</title>
-    <link rel="stylesheet" href="styles/main.css">
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #2a2a2a;
+            --text-primary: #ffffff;
+            --text-secondary: #b4b4b4;
+            --accent: #ff6b35;
+            --accent-hover: #ff8559;
+            --border: #333333;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .app-header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 20px;
+            font-size: 0.875rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Main Chat Container */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            height: calc(100vh - 80px);
+        }
+
+        /* Messages Area */
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .message {
+            margin-bottom: 1.5rem;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.875rem;
+        }
+
+        .user-avatar {
+            background: var(--gradient);
+            color: white;
+        }
+
+        .bot-avatar {
+            background: var(--bg-tertiary);
+            color: var(--accent);
+        }
+
+        .message-sender {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .message-content {
+            background: var(--bg-secondary);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            border-left: 3px solid var(--accent);
+            line-height: 1.6;
+            position: relative;
+        }
+
+        .user-message .message-content {
+            background: var(--bg-tertiary);
+            border-left-color: var(--gradient);
+        }
+
+        .system-message {
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .system-message .message-content {
+            display: inline-block;
+            background: var(--bg-tertiary);
+            border-left: none;
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* Agent Integration Cards */
+        .agent-cards {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .agent-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            flex: 1;
+            min-width: 200px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .agent-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .agent-card.active {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        .agent-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .agent-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+
+        .agent-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* Input Area */
+        .chat-input-container {
+            padding: 1.5rem 2rem;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 1rem;
+            align-items: end;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            line-height: 1.4;
+            resize: none;
+            min-height: 60px;
+            max-height: 200px;
+            transition: border-color 0.2s ease;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .chat-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .send-button {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 100px;
+            justify-content: center;
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Loading Animation */
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 1rem;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+
+        /* Welcome Screen */
+        .welcome-screen {
+            text-align: center;
+            padding: 4rem 2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .welcome-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .welcome-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .feature-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-description {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .app-header {
+                padding: 1rem;
+            }
+            
+            .chat-messages {
+                padding: 1rem;
+            }
+            
+            .chat-input-container {
+                padding: 1rem;
+            }
+            
+            .agent-cards {
+                flex-direction: column;
+            }
+            
+            .welcome-title {
+                font-size: 2rem;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
     <header class="app-header">
-        <!-- Header content -->
+        <div class="header-left">
+            <div class="logo">💬 DevChat</div>
+        </div>
+        <div class="header-right">
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <span>Connected</span>
+            </div>
+        </div>
     </header>
 
     <main class="chat-container">
         <div class="chat-messages" id="chatMessages">
-            <!-- Messages populate here -->
+            <div class="welcome-screen">
+                <h1 class="welcome-title">Developer Requirements Chat</h1>
+                <p class="welcome-subtitle">
+                    Your unified requirements gathering system with integrated Jira and Confluence AI agents.
+                    Start a conversation to gather, organize, and manage your development requirements.
+                </p>
+                
+                <div class="agent-cards">
+                    <div class="agent-card" id="jiraAgent">
+                        <div class="agent-title">
+                            <div class="agent-status"></div>
+                            🎯 Jira Agent
+                        </div>
+                        <div class="agent-description">
+                            Create tickets, track issues, and manage project workflows directly through chat.
+                        </div>
+                    </div>
+                    <div class="agent-card" id="confluenceAgent">
+                        <div class="agent-title">
+                            <div class="agent-status"></div>
+                            📚 Confluence Agent
+                        </div>
+                        <div class="agent-description">
+                            Document requirements, create specifications, and manage knowledge base content.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <div class="feature-title">Real-time Integration</div>
+                        <div class="feature-description">
+                            Seamlessly connect with your Jira and Confluence instances for live data sync.
+                        </div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🤖</div>
+                        <div class="feature-title">AI-Powered Assistance</div>
+                        <div class="feature-description">
+                            Intelligent agents help structure requirements and suggest best practices.
+                        </div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📋</div>
+                        <div class="feature-title">Requirement Management</div>
+                        <div class="feature-description">
+                            Organize, prioritize, and track requirements throughout the development lifecycle.
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="chat-input-container">
-            <!-- Input area -->
+            <div class="input-wrapper">
+                <textarea 
+                    class="chat-input" 
+                    id="chatInput" 
+                    placeholder="Type your message here... (e.g., 'Create a user story for login functionality' or 'Document API requirements')"
+                    rows="1"
+                ></textarea>
+                <button class="send-button" id="sendButton">
+                    <span>Send</span>
+                </button>
+            </div>
         </div>
     </main>
 
-    <script src="scripts/main.js"></script>
+    <script>
+        // Configuration
+        const CONFIG = {
+            jira: {
+                url: 'https://your-domain.atlassian.net',
+                apiToken: 'your-jira-api-token',
+                email: 'your-email@example.com'
+            },
+            confluence: {
+                url: 'https://your-domain.atlassian.net/wiki',
+                apiToken: 'your-confluence-api-token',
+                email: 'your-email@example.com'
+            }
+        };
+
+        // DOM Elements
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendButton = document.getElementById('sendButton');
+        const jiraAgent = document.getElementById('jiraAgent');
+        const confluenceAgent = document.getElementById('confluenceAgent');
+
+        // State
+        let activeAgents = new Set();
+        let conversationHistory = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeChat();
+            setupEventListeners();
+        });
+
+        function initializeChat() {
+            // Auto-resize textarea
+            chatInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+            });
+
+            // Focus input on load
+            chatInput.focus();
+        }
+
+        function setupEventListeners() {
+            // Send message
+            sendButton.addEventListener('click', sendMessage);
+            chatInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            // Agent selection
+            jiraAgent.addEventListener('click', () => toggleAgent('jira'));
+            confluenceAgent.addEventListener('click', () => toggleAgent('confluence'));
+        }
+
+        function toggleAgent(agentType) {
+            const card = document.getElementById(agentType + 'Agent');
+            
+            if (activeAgents.has(agentType)) {
+                activeAgents.delete(agentType);
+                card.classList.remove('active');
+            } else {
+                activeAgents.add(agentType);
+                card.classList.add('active');
+            }
+
+            // Show system message about agent activation
+            if (conversationHistory.length > 0) {
+                const status = activeAgents.has(agentType) ? 'activated' : 'deactivated';
+                addSystemMessage(`${agentType.charAt(0).toUpperCase() + agentType.slice(1)} agent ${status}`);
+            }
+        }
+
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            // Disable input while processing
+            setInputState(false);
+
+            // Add user message
+            addMessage('user', 'You', message);
+            
+            // Clear input
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+
+            // Show typing indicator
+            showTypingIndicator();
+
+            // Process message
+            setTimeout(async () => {
+                hideTypingIndicator();
+                await processMessage(message);
+                setInputState(true);
+                chatInput.focus();
+            }, 1000 + Math.random() * 2000);
+        }
+
+        function addMessage(type, sender, content, timestamp = new Date()) {
+            // Remove welcome screen if this is the first message
+            const welcomeScreen = document.querySelector('.welcome-screen');
+            if (welcomeScreen && conversationHistory.length === 0) {
+                welcomeScreen.style.display = 'none';
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}-message`;
+
+            const timeString = timestamp.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <div class="message-avatar ${type}-avatar">
+                        ${type === 'user' ? '👤' : '🤖'}
+                    </div>
+                    <span class="message-sender">${sender}</span>
+                    <span class="message-time">${timeString}</span>
+                </div>
+                <div class="message-content">${content}</div>
+            `;
+
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+
+            // Add to conversation history
+            conversationHistory.push({ type, sender, content, timestamp });
+        }
+
+        function addSystemMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message system-message';
+            messageDiv.innerHTML = `<div class="message-content">${message}</div>`;
+            
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot-message';
+            typingDiv.id = 'typingIndicator';
+            
+            typingDiv.innerHTML = `
+                <div class="message-header">
+                    <div class="message-avatar bot-avatar">🤖</div>
+                    <span class="message-sender">AI Assistant</span>
+                </div>
+                <div class="message-content">
+                    <div class="typing-indicator">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(typingDiv);
+            scrollToBottom();
+        }
+
+        function hideTypingIndicator() {
+            const typing = document.getElementById('typingIndicator');
+            if (typing) typing.remove();
+        }
+
+        async function processMessage(message) {
+            let response = await generateResponse(message);
+            
+            // Check if agents should be involved
+            if (activeAgents.size === 0 && (
+                message.toLowerCase().includes('jira') || 
+                message.toLowerCase().includes('ticket') ||
+                message.toLowerCase().includes('confluence') ||
+                message.toLowerCase().includes('document')
+            )) {
+                const suggestion = suggestAgents(message);
+                response += `\n\n${suggestion}`;
+            }
+
+            addMessage('bot', 'AI Assistant', response);
+
+            // Process with active agents
+            if (activeAgents.size > 0) {
+                setTimeout(() => processWithAgents(message), 500);
+            }
+        }
+
+        async function generateResponse(message) {
+            // Simulate AI response generation
+            const responses = {
+                greeting: [
+                    "Hello! I'm here to help you gather and organize your development requirements. How can I assist you today?",
+                    "Hi there! I can help you create user stories, document requirements, and manage your development workflow. What would you like to work on?",
+                    "Welcome! I'm ready to help you with requirements gathering, ticket creation, and documentation. What's on your mind?"
+                ],
+                requirements: [
+                    "I can help you structure that requirement. Let me break it down into user stories and acceptance criteria.",
+                    "That's a great requirement! I'll help you document this properly and suggest implementation considerations.",
+                    "Let me help you refine this requirement and create the necessary documentation."
+                ],
+                technical: [
+                    "I can help you document the technical specifications for this. Would you like me to create a technical design document?",
+                    "That sounds like a complex feature. Let me help you break it down into manageable components and create the necessary tickets.",
+                    "I'll help you outline the technical requirements and suggest an implementation approach."
+                ],
+                default: [
+                    "I understand you want to work on this requirement. Let me help you organize and document it properly.",
+                    "That's an interesting challenge! I can help you structure this into actionable items and documentation.",
+                    "I'm here to help you refine and organize your development requirements. Let me assist you with this."
+                ]
+            };
+
+            const lowerMessage = message.toLowerCase();
+            let category = 'default';
+
+            if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
+                category = 'greeting';
+            } else if (lowerMessage.includes('requirement') || lowerMessage.includes('feature') || lowerMessage.includes('story')) {
+                category = 'requirements';
+            } else if (lowerMessage.includes('api') || lowerMessage.includes('database') || lowerMessage.includes('architecture')) {
+                category = 'technical';
+            }
+
+            const categoryResponses = responses[category];
+            return categoryResponses[Math.floor(Math.random() * categoryResponses.length)];
+        }
+
+        function suggestAgents(message) {
+            const suggestions = [];
+            
+            if (message.toLowerCase().includes('ticket') || message.toLowerCase().includes('issue') || message.toLowerCase().includes('bug')) {
+                suggestions.push("💡 Consider activating the **Jira Agent** to create and manage tickets");
+            }
+            
+            if (message.toLowerCase().includes('document') || message.toLowerCase().includes('specification') || message.toLowerCase().includes('wiki')) {
+                suggestions.push("💡 Consider activating the **Confluence Agent** to create documentation");
+            }
+            
+            return suggestions.length > 0 ? suggestions.join('\n') : '';
+        }
+
+        async function processWithAgents(message) {
+            for (const agent of activeAgents) {
+                setTimeout(() => {
+                    addMessage('bot', `${agent.charAt(0).toUpperCase() + agent.slice(1)} Agent`, 
+                        getAgentResponse(agent, message));
+                }, Math.random() * 1000);
+            }
+        }
+
+        function getAgentResponse(agent, message) {
+            const responses = {
+                jira: [
+                    "I've analyzed your request and can create the following Jira tickets:\n\n📋 **Epic**: Main feature development\n🎯 **Story**: User interface implementation\n🐛 **Task**: Backend API development\n\nWould you like me to create these tickets in your Jira instance?",
+                    "Based on your requirements, I suggest creating a new epic with the following breakdown:\n\n• **User Story**: As a user, I want...\n• **Acceptance Criteria**: Defined success metrics\n• **Technical Tasks**: Implementation steps\n\nShall I proceed with ticket creation?",
+                    "I can help you track this requirement in Jira. Here's what I recommend:\n\n✅ Create parent epic for overall feature\n✅ Break down into user stories\n✅ Add technical subtasks\n✅ Set priority and estimates\n\nReady to create these tickets?"
+                ],
+                confluence: [
+                    "I can document this requirement in Confluence with the following structure:\n\n📖 **Requirements Document**\n• Functional specifications\n• Technical architecture\n• User acceptance criteria\n• Implementation timeline\n\nShould I create this documentation page?",
+                    "Let me create a comprehensive Confluence page for this feature:\n\n🎯 **Feature Overview**\n🏗️ **Technical Design**\n👥 **User Stories**\n✅ **Acceptance Criteria**\n🔄 **Implementation Plan**\n\nWould you like me to generate this documentation?",
+                    "I'll help you document this in Confluence with proper structure:\n\n• **Executive Summary**\n• **Detailed Requirements**\n• **Technical Specifications**\n• **Testing Strategy**\n• **Deployment Guide**\n\nShall I create the documentation template?"
+                ]
+            };
+
+            const agentResponses = responses[agent];
+            return agentResponses[Math.floor(Math.random() * agentResponses.length)];
+        }
+
+        function setInputState(enabled) {
+            chatInput.disabled = !enabled;
+            sendButton.disabled = !enabled;
+            if (enabled) {
+                chatInput.focus();
+            }
+        }
+
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // API Integration Functions (mock implementations)
+        class JiraAgent {
+            static async createTicket(data) {
+                // Mock implementation - replace with actual Jira API calls
+                return { success: true, key: 'DEV-' + Math.floor(Math.random() * 1000) };
+            }
+            
+            static async searchTickets(query) {
+                // Mock implementation
+                return { issues: [] };
+            }
+        }
+
+        class ConfluenceAgent {
+            static async createPage(data) {
+                // Mock implementation - replace with actual Confluence API calls
+                return { success: true, id: Math.floor(Math.random() * 100000) };
+            }
+            
+            static async searchPages(query) {
+                // Mock implementation
+                return { results: [] };
+            }
+        }
+
+        // API Client utility functions
+        class ApiClient {
+            static async makeRequest(url, options = {}) {
+                // Mock implementation - replace with actual API calls
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        resolve({ success: true, data: {} });
+                    }, 1000);
+                });
+            }
+        }
+
+        // Helper functions
+        const helpers = {
+            formatDate: (date) => date.toLocaleDateString(),
+            generateId: () => Math.random().toString(36).substr(2, 9),
+            sanitizeInput: (input) => input.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+        };
+    </script>
 </body>
 </html>
