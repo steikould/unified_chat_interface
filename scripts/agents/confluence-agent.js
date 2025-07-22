@@ -1,0 +1,1 @@
+// Confluence Agent JavaScript file

@@ -1,0 +1,1 @@
+// Chat Handler JavaScript file
